@@ -1,0 +1,108 @@
+---
+title: "Reproducible Research: Peer Assessment 1"
+output: 
+  html_document:
+    keep_md: true
+---
+## Libraries
+```{r echo=TRUE}
+library(data.table)
+library(ggplot2)
+```
+
+## Loading and preprocessing the data
+```{r echo=TRUE}
+#Load the data
+original <- fread("activity.csv")
+
+#NA number
+naNumber <- sum(is.na(original$steps))
+
+#Omit NA records
+pmData <- na.omit(original)
+
+```
+
+## Data characteristics
+```{r echo=TRUE}
+str(pmData)
+dim(pmData)
+summary(pmData)
+head(pmData)
+```
+
+## What is total number of steps taken per day?
+
+#Calculate the total number of steps taken per day
+```{r echo=TRUE}
+stepsByDay <- pmData[,sum(steps),by = date]
+```
+
+#Make a histogram of the total number of steps taken each day
+```{r echo=TRUE}
+qplot(V1, data=stepsByDay)
+```
+
+#Calculate and report the mean and median of the total number of steps taken per day
+```{r echo=TRUE}
+mean(stepsByDay$V1)
+median(stepsByDay$V1)
+
+```
+
+## What is the average daily activity pattern?
+Make a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis)
+
+```{r echo=TRUE}
+fiveMinIntervalAverages <- pmData[,mean(steps),by=interval]
+
+# Make a time series plot
+with(fiveMinIntervalAverages, plot(interval, V1, type="l", ylab="steps" ))
+
+# 5-minute interval, on average across all the days in the dataset, with the maximum number of steps.
+
+apply(fiveMinIntervalAverages, MARGIN = 2, function(x) max(x, na.rm=TRUE))
+
+
+```
+
+## Imputing missing values
+## Total number of missing values in the dataset. it is calculated at the beginning, before removing NA rows.
+```{r}
+naNumber
+```
+
+##Devise a strategy for filling in all of the missing values in the dataset
+
+# Find the NA positions
+```{r}
+naPos <- which(is.na(original$steps))
+```
+
+# Create a vector of means
+```{r}
+meanVec <- rep(mean(original$steps, na.rm=TRUE), times=length(naPos))
+```
+
+# Replace the NAs with the means
+original[naPos, "steps"] <- meanVec
+
+# new dataset with means
+head(original)
+
+## Are there differences in activity patterns between weekdays and weekends?
+# Create a new factor variable in the dataset with two levels - "weekday" and "weekend" 
+```{r}
+original$weekday <- tolower(weekdays(as.Date(original$date)))
+original <- cbind(original, 
+                      daytype=ifelse(original$weekday == "sábado" | 
+                                     original$weekday == "domingo", "weekend", 
+                                     "weekday"))
+```
+
+
+
+
+
+
+
