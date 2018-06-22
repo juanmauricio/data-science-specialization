@@ -68,7 +68,7 @@ apply(fiveMinIntervalAverages, MARGIN = 2, function(x) max(x, na.rm=TRUE))
 
 ## Imputing missing values
 ## Total number of missing values in the dataset. it is calculated at the beginning, before removing NA rows.
-```{r}
+```{r echo=TRUE}
 naNumber
 ```
 
@@ -80,19 +80,24 @@ naPos <- which(is.na(original$steps))
 ```
 
 # Create a vector of means
-```{r}
+```{r echo=TRUE}
 meanVec <- rep(mean(original$steps, na.rm=TRUE), times=length(naPos))
 ```
 
 # Replace the NAs with the means
+```{r}
 original[naPos, "steps"] <- meanVec
+```
 
 # new dataset with means
+```{r}
 head(original)
+```
+
 
 ## Are there differences in activity patterns between weekdays and weekends?
 # Create a new factor variable in the dataset with two levels - "weekday" and "weekend" 
-```{r}
+```{r echo=TRUE}
 original$weekday <- tolower(weekdays(as.Date(original$date)))
 original <- cbind(original, 
                       daytype=ifelse(original$weekday == "sábado" | 
@@ -101,8 +106,26 @@ original <- cbind(original,
 ```
 
 
+##Make a panel plot containing a time series plot of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis). 
+```{r echo=TRUE}
+library(lattice)
 
+mean_data <- aggregate(original$steps, 
+                       by=list(original$daytype, 
+                               original$weekday, original$interval), mean)
+```
 
+# Rename the attributes
+```{r echo=TRUE}
+names(mean_data) <- c("daytype", "weekday", "interval", "mean")
+head(mean_data)
+```
 
-
+# Compute the time serie plot
+xyplot(mean ~ interval | daytype, mean_data, 
+       type="l", 
+       lwd=1, 
+       xlab="Interval", 
+       ylab="Number of steps", 
+       layout=c(1,2))
 
